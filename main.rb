@@ -25,8 +25,8 @@ ActiveRecord::Base.establish_connection(
 #usersテーブルをオブジェクトに結びつける
 # - オブジェクトの名前は規約により、最初が大文字の単数系の単語
 # - このように書くことでusersテーブルのレコードをUserクラスのインスタンスをして扱えるようになった
-class User < ActiveRecord::Base
-end
+# class User < ActiveRecord::Base
+# end
 
 # --------------------------------------------------
 
@@ -59,7 +59,7 @@ end
 ## データの抽出
 
 #毎回データを作成されないようにまずデータを全削除する
-User.delete_all
+# User.delete_all
 
 # i = 0
 # 5.times do
@@ -68,18 +68,18 @@ User.delete_all
 # end
 
 # User.create
-User.create(name: "tanaka", age: 19)
-User.create(name: "takahashi", age: 25)
-User.create(name: "hayashi", age: 31)
-User.create(name: "mizutani", age: 28)
-User.create(name: "otsuka", age: 35)
+# User.create(name: "tanaka", age: 19)
+# User.create(name: "takahashi", age: 25)
+# User.create(name: "hayashi", age: 31)
+# User.create(name: "mizutani", age: 28)
+# User.create(name: "otsuka", age: 35)
 
 # --------------------------------------------------
 
 ##データ抽出_1
 ## - select
 
-pp User.all
+# pp User.all
 # pp User.select(:id, :name, :age).all
 # pp User.select(:id, :name, :age).first
 # pp User.select(:id, :name, :age).last
@@ -133,12 +133,92 @@ pp User.all
 
 ## - OR (whereを繋いで使用する)
 #括弧内でorを使う
-pp User.select("id, name, age").where("age <= 20 or age >= 30")
-#もしくはorメソッドとして使用する(その際はor以下に同じ構造を持たなければいけない)
-pp User.select("id, name, age").where("age <= 20").or(User.select("id, name, age").where("age >= 30"))
-#またはselectメソッドを文末にもってくる
-pp User.where("age <= 20").or(User.where("age >= 30")).select("id, name, age")
+# pp User.select("id, name, age").where("age <= 20 or age >= 30")
+# #もしくはorメソッドとして使用する(その際はor以下に同じ構造を持たなければいけない)
+# pp User.select("id, name, age").where("age <= 20").or(User.select("id, name, age").where("age >= 30"))
+# #またはselectメソッドを文末にもってくる
+# pp User.where("age <= 20").or(User.where("age >= 30")).select("id, name, age")
 
 
-## - NOT
-pp User.select("id, name, age").where.not(id: 3)
+# ## - NOT("ではない"を検索)
+# pp User.select("id, name, age").where.not(id: 3)
+
+# --------------------------------------------------
+
+# ## - プレイスホルダー
+# ## - シンボル
+
+
+# min = 20
+# max = 30
+
+# pp User.select("id, name, age").where("age >= #{min} and age < #{max}") ##絶対にしてはいけない!!!!!
+                                                                        ##(変数の値を直接条件文字列に入れてしまうと悪意のあるコードが紛れる可能性があるため)
+#安全に値を埋め込むにはプレイスホルダーを使う(?)　※プレイスホルダーとは仮のの情報(【例】「〇〇の秋」の〇〇)
+# pp User.select("id, name, age").where("age >= ? and age < ?", min, max)
+# #もしくはシンボルを使う(:)
+# pp User.select("id, name, age").where("age >= :min and age < :max", { min: min, max: max })
+
+
+# ## - LIKE(文字列の部分一致) "%i"=>後方一致、"i%"=>前方一致、"%i%"=>部分一致
+# pp User.select("id, name, age").where("name LIKE ?", "%i")
+
+# --------------------------------------------------
+
+## - order
+
+#年齢順
+# pp User.select("id, name, age").order("age")
+# pp User.select("id, name, age").order(:age)
+
+#逆順
+# pp User.select("id, name, age").order("age desc")
+# pp User.select("id, name, age").order(age: :desc)
+
+
+# ## - limit
+
+# #limitで3件に絞る
+# pp User.select("id, name, age").order(:age).limit(3)
+# #offsetで任意のレコードをスキップする
+# pp User.select("id, name, age").order(:age).limit(3).offset(1)
+
+# --------------------------------------------------
+
+## - class method
+## - scope
+
+
+# class User < ActiveRecord::Base
+  #class method
+  # def self.top3
+  #   select("id, name, age").order(:age).limit(3)
+  # end
+
+  #class method(引数を受ける場合)
+  # def self.top(num)
+  #   select("id, name, age").order(:age).limit(num)
+  # end
+
+
+  #scope
+  # scope :top3, -> { select("id, name, age").order(:age).limit(3) }
+
+  #scope(引数を受ける場合)
+  # scope :top, ->(num) { select("id, name, age").order(:age).limit(num) }
+# end
+
+# User.delete_all
+
+# User.create(name: "tanaka", age: 19)
+# User.create(name: "takahashi", age: 25)
+# User.create(name: "hayashi", age: 31)
+# User.create(name: "mizutani", age: 28)
+# User.create(name: "otsuka", age: 35)
+
+# pp User.all
+
+# # pp User.top3
+
+# #引数を使う場合
+# pp User.top(2)
